@@ -1,10 +1,31 @@
 from flask import jsonify, request, render_template, redirect, url_for, flash
-from app import app, db
+from app import app, db, logger
 from models import Customer, Product, Order, OrderItem, BotMessage, CustomerSession
-from flask_login import login_required
+from flask_login import login_required, current_user
 import json
 import logging
+import traceback
+from datetime import datetime
 from bot_handler import handle_bot_message
+
+# Error handlers
+@app.errorhandler(404)
+def page_not_found(e):
+    logger.error(f"404 Error: {request.path}")
+    return render_template('error.html', error_code=404, message="Page not found"), 404
+
+@app.errorhandler(500)
+def internal_server_error(e):
+    logger.error(f"500 Error: {traceback.format_exc()}")
+    return render_template('error.html', error_code=500, message="Internal server error"), 500
+
+# Add context processor to provide variables to all templates
+@app.context_processor
+def inject_user():
+    return dict(
+        now=datetime.now(),
+        rtl=False  # Default to LTR, can be changed in settings
+    )
 
 @app.route('/')
 def index():

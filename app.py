@@ -1,13 +1,19 @@
 import os
 import logging
+import sys
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase
 from werkzeug.middleware.proxy_fix import ProxyFix
 from flask_login import LoginManager
 
-# Configure logging
-logging.basicConfig(level=logging.DEBUG)
+# Configure logging - write to stderr for easier debugging
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s [%(levelname)s] %(name)s - %(message)s',
+    stream=sys.stderr
+)
+logger = logging.getLogger(__name__)
 
 # Define SQLAlchemy base
 class Base(DeclarativeBase):
@@ -18,6 +24,7 @@ db = SQLAlchemy(model_class=Base)
 
 # Create the Flask app
 app = Flask(__name__)
+app.debug = True  # Enable Flask debugging
 app.secret_key = os.environ.get("SESSION_SECRET", "messenger-bot-secret-key")
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
