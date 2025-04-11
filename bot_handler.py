@@ -10,7 +10,11 @@ from datetime import datetime
 
 # Facebook Messenger API endpoint
 MESSENGER_API_URL = "https://graph.facebook.com/v16.0/me/messages"
-PAGE_ACCESS_TOKEN = "PAGE_ACCESS_TOKEN"  # Should be an environment variable
+
+# Get page access token from settings
+def get_page_access_token():
+    """Get the page access token from settings"""
+    return Setting.get('page_access_token', "")
 
 def send_message(recipient_id, message_data):
     """Send message to recipient via Messenger API"""
@@ -24,7 +28,7 @@ def send_message(recipient_id, message_data):
     }
     
     params = {
-        "access_token": PAGE_ACCESS_TOKEN
+        "access_token": get_page_access_token()
     }
     
     try:
@@ -60,7 +64,7 @@ def get_user_profile(user_id):
     url = f"https://graph.facebook.com/{user_id}"
     params = {
         "fields": "first_name,last_name,profile_pic",
-        "access_token": PAGE_ACCESS_TOKEN
+        "access_token": get_page_access_token()
     }
     
     try:

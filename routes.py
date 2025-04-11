@@ -39,7 +39,9 @@ def verify_webhook():
     token = request.args.get('hub.verify_token')
     challenge = request.args.get('hub.challenge')
     
-    verify_token = "MESSENGER_VERIFY_TOKEN"  # Should be set as an environment variable
+    # Get verify token from settings if available
+    from models import Setting
+    verify_token = Setting.get('verify_token', "")
     
     if mode and token:
         if mode == 'subscribe' and token == verify_token:
