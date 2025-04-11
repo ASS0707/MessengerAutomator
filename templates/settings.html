@@ -9,10 +9,11 @@
 
 <div class="card shadow-sm mb-4">
     <div class="card-header bg-primary text-white">
-        <h5 class="card-title mb-0"><i class="fas fa-building me-2"></i>Business Information</h5>
+        <h5 class="card-title mb-0"><i class="fas fa-cog me-2"></i>System Settings</h5>
     </div>
     <div class="card-body">
         <form method="POST" action="{{ url_for('admin_settings') }}">
+            <h6 class="card-subtitle mb-3"><i class="fas fa-building me-2"></i>Business Information</h6>
             <div class="row">
                 <div class="col-md-6">
                     <div class="mb-3">
@@ -45,21 +46,7 @@
             
             <hr class="my-4">
             
-            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-save me-1"></i> Save Settings
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<div class="card shadow-sm mb-4">
-    <div class="card-header bg-success text-white">
-        <h5 class="card-title mb-0"><i class="fab fa-facebook-messenger me-2"></i>Facebook Messenger Settings</h5>
-    </div>
-    <div class="card-body">
-        <form method="POST" action="{{ url_for('admin_settings') }}">
+            <h6 class="card-subtitle mb-3"><i class="fab fa-facebook-messenger me-2"></i>Facebook Messenger Integration</h6>
             <div class="row">
                 <div class="col-md-6">
                     <div class="mb-3">
@@ -81,11 +68,63 @@
                 </div>
             </div>
             
+            <div class="card bg-light mt-3 mb-3">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-link me-2"></i>Webhook Configuration</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Webhook URL</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" value="{{ request.url_root }}webhook" readonly>
+                                <button class="btn btn-outline-secondary" type="button" onclick="copyToClipboard('{{ request.url_root }}webhook')">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                            <div class="form-text">Use this URL in Facebook Developer Console</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Subscription Fields</label>
+                            <ul class="list-group">
+                                <li class="list-group-item d-flex justify-content-between align-items-center py-2">
+                                    messages
+                                    <span class="badge bg-primary rounded-pill">Required</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center py-2">
+                                    messaging_postbacks
+                                    <span class="badge bg-primary rounded-pill">Required</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info mt-3 mb-0">
+                        <div class="d-flex">
+                            <div class="me-3">
+                                <i class="fas fa-info-circle fa-2x"></i>
+                            </div>
+                            <div>
+                                <h6 class="alert-heading">Setup Instructions</h6>
+                                <ol class="mb-0">
+                                    <li>Create a <a href="https://developers.facebook.com/" target="_blank">Facebook App</a></li>
+                                    <li>Add the Messenger product to your app</li>
+                                    <li>Generate a Page Access Token and paste it above</li>
+                                    <li>Create a custom Verify Token (any string) and paste it above</li>
+                                    <li>Set up your webhook with the URL and verify token</li>
+                                    <li>Subscribe to the required fields</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
             <hr class="my-4">
             
             <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                <button type="submit" class="btn btn-success">
-                    <i class="fas fa-save me-1"></i> Save Messenger Settings
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save me-1"></i> Save All Settings
                 </button>
             </div>
         </form>
@@ -164,5 +203,43 @@
             }
         });
     });
+    
+    // Function to copy text to clipboard
+    function copyToClipboard(text) {
+        // Create temporary input element
+        const el = document.createElement('textarea');
+        el.value = text;
+        document.body.appendChild(el);
+        el.select();
+        
+        // Copy text
+        document.execCommand('copy');
+        document.body.removeChild(el);
+        
+        // Show toast notification
+        const toast = document.createElement('div');
+        toast.className = 'position-fixed bottom-0 end-0 p-3';
+        toast.style.zIndex = '5';
+        toast.innerHTML = `
+            <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="toast-header bg-success text-white">
+                    <i class="fas fa-check-circle me-2"></i>
+                    <strong class="me-auto">Copied!</strong>
+                    <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close" onclick="this.parentElement.parentElement.parentElement.remove()"></button>
+                </div>
+                <div class="toast-body">
+                    URL copied to clipboard
+                </div>
+            </div>
+        `;
+        document.body.appendChild(toast);
+        
+        // Auto remove after 3 seconds
+        setTimeout(() => {
+            if (toast && document.body.contains(toast)) {
+                document.body.removeChild(toast);
+            }
+        }, 3000);
+    }
 </script>
 {% endblock %}
