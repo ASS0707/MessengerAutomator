@@ -1,0 +1,50 @@
+
+> I want to build a fully automated **Messenger bot system using Flask and SQLite** that allows users to interact without human intervention and complete an order through structured steps. The system should be connected to a **custom built-in admin web interface** (not an external website) with RTL Arabic support and full data management features. Here's exactly what I want:
+>
+> ### **Core Bot Features:**
+> - When a user sends any message, the bot greets them and shows an introduction.
+> - The bot displays selectable options:  
+>   1. Place an Order  
+>   2. View Prices  
+>   3. Talk to Customer Support
+> - If the user chooses "View Prices", the bot shows product categories or a product list (stored in DB or JSON).
+> - If the user chooses a product and wants to order, the bot asks for:
+>   - Full Name  
+>   - Phone Number  
+>   - Address  
+>   - (Optional) Order Notes
+> - The bot confirms the order and shows a summary.
+> - **I want full control over what the bot says at every step** — all bot messages must be editable from the admin panel or config file.
+>
+> ### **Admin Panel Features (Web Interface using Flask):**
+> - Admin login system with secure authentication.
+> - View all incoming orders in a dashboard.
+> - Search/filter orders by name, date, phone, or product.
+> - Change the order status (e.g., New, Processing, Delivered).
+> - Real-time web notifications when a new order is received.
+> - Display user’s Messenger name and real name submitted during the order.
+> - Full Arabic support with RTL layout.
+> - Dark mode for the dashboard.
+>
+> ### **Order Management Features:**
+> - Generate PDF invoice for each order with:
+>   - Customer name, phone, address, and product
+>   - Business logo (customizable from settings)
+> - Download order history as an Excel sheet.
+> - Generate a unique **QR Code** for each order linking to order tracking or info.
+> - Admin can add/edit/delete products from a product management page.
+> - Admin can add notes to any order.
+> - Automatic daily backup of the SQLite database.
+> - Built-in analytics dashboard showing:
+>   - Total orders
+>   - Most ordered products
+>   - Top customers
+>
+> ### **Extra Features:**
+> - Logo upload and change option from admin panel.
+> - Intelligent error handling with fallback messages.
+> - Multilingual support (default Arabic, extendable to English).
+> - WhatsApp or email notification to admin when an order is made.
+> - Customers can track the status of their order using order ID.
+> - Responsive mobile-friendly design.
+> - Full control over all bot texts and responses.
