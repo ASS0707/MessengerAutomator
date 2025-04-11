@@ -48,35 +48,54 @@ def verify_webhook():
             logging.info("Webhook verified!")
             return challenge
         else:
-            return jsonify({"success": False}), 403
+            logging.warning(f"Failed webhook verification: Invalid token or mode. Mode: {mode}, Token: {token}")
+            return jsonify({"success": False, "error": "Invalid verification token"}), 403
     
-    return jsonify({"success": False}), 400
+    logging.warning("Failed webhook verification: Missing mode or token")
+    return jsonify({"success": False, "error": "Missing hub.mode or hub.verify_token"}), 400
 
 @app.route('/webhook', methods=['POST'])
 def webhook():
     """Handle incoming messages from Messenger"""
-    data = request.json
-    logging.debug(f"Received webhook data: {data}")
-    
-    if data.get('object') == 'page':
-        for entry in data.get('entry', []):
-            for messaging_event in entry.get('messaging', []):
-                sender_id = messaging_event.get('sender', {}).get('id')
-                
-                # Check if this is a message event
-                if messaging_event.get('message'):
-                    # Process the message
-                    response = handle_bot_message(sender_id, messaging_event)
-                    return jsonify(response)
-                
-                # Check if this is a postback event (button click)
-                if messaging_event.get('postback'):
-                    # Process postback
-                    payload = messaging_event.get('postback', {}).get('payload')
-                    response = handle_bot_message(sender_id, messaging_event, payload=payload)
-                    return jsonify(response)
-                
-    return jsonify({"success": True})
+    try:
+        # Check if we have a valid JSON payload
+        if not request.is_json:
+            logging.warning("Received webhook with invalid content type")
+            return jsonify({"success": False, "error": "Invalid content type"}), 400
+        
+        data = request.json
+        logging.debug(f"Received webhook data: {data}")
+        
+        if data.get('object') == 'page':
+            for entry in data.get('entry', []):
+                for messaging_event in entry.get('messaging', []):
+                    sender_id = messaging_event.get('sender', {}).get('id')
+                    
+                    if not sender_id:
+                        logging.warning("Received messaging event with no sender ID")
+                        continue
+                    
+                    # Check if this is a message event
+                    if messaging_event.get('message'):
+                        # Process the message
+                        logging.info(f"Processing message from sender: {sender_id}")
+                        response = handle_bot_message(sender_id, messaging_event)
+                        return jsonify(response)
+                    
+                    # Check if this is a postback event (button click)
+                    if messaging_event.get('postback'):
+                        # Process postback
+                        payload = messaging_event.get('postback', {}).get('payload')
+                        logging.info(f"Processing postback from sender: {sender_id}, payload: {payload}")
+                        response = handle_bot_message(sender_id, messaging_event, payload=payload)
+                        return jsonify(response)
+        
+        # Return success even if we didn't process anything to acknowledge receipt
+        return jsonify({"success": True})
+        
+    except Exception as e:
+        logging.error(f"Error processing webhook: {str(e)}")
+        return jsonify({"success": False, "error": "Server error"}), 500
 
 @app.route('/webhook/send', methods=['POST'])
 def send_message():
