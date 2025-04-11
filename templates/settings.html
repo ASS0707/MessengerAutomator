@@ -54,6 +54,44 @@
     </div>
 </div>
 
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-success text-white">
+        <h5 class="card-title mb-0"><i class="fab fa-facebook-messenger me-2"></i>Facebook Messenger Settings</h5>
+    </div>
+    <div class="card-body">
+        <form method="POST" action="{{ url_for('admin_settings') }}">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="page_access_token" class="form-label">Page Access Token</label>
+                        <input type="text" class="form-control" id="page_access_token" name="page_access_token" value="{{ settings.page_access_token }}">
+                        <div class="form-text">
+                            The Page Access Token from your Facebook app's Messenger settings.
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="verify_token" class="form-label">Verify Token</label>
+                        <input type="text" class="form-control" id="verify_token" name="verify_token" value="{{ settings.verify_token }}">
+                        <div class="form-text">
+                            A verification token you create and provide to Facebook when setting up your webhook.
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <hr class="my-4">
+            
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                <button type="submit" class="btn btn-success">
+                    <i class="fas fa-save me-1"></i> Save Messenger Settings
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <div class="row">
     <div class="col-md-6 mb-4">
         <div class="card shadow-sm h-100">

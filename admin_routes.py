@@ -496,11 +496,21 @@ def admin_settings():
         business_phone = request.form.get('business_phone')
         business_email = request.form.get('business_email')
         
+        # Facebook Messenger settings
+        page_access_token = request.form.get('page_access_token')
+        verify_token = request.form.get('verify_token')
+        
         # Save settings
         Setting.set('business_name', business_name)
         Setting.set('business_address', business_address)
         Setting.set('business_phone', business_phone)
         Setting.set('business_email', business_email)
+        
+        # Save Facebook Messenger settings if provided
+        if page_access_token:
+            Setting.set('page_access_token', page_access_token)
+        if verify_token:
+            Setting.set('verify_token', verify_token)
         
         flash('Settings updated successfully', 'success')
         return redirect(url_for('admin_settings'))
@@ -510,7 +520,9 @@ def admin_settings():
         'business_name': Setting.get('business_name', ''),
         'business_address': Setting.get('business_address', ''),
         'business_phone': Setting.get('business_phone', ''),
-        'business_email': Setting.get('business_email', '')
+        'business_email': Setting.get('business_email', ''),
+        'page_access_token': Setting.get('page_access_token', ''),
+        'verify_token': Setting.get('verify_token', '')
     }
     
     return render_template('settings.html', settings=settings)
