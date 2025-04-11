@@ -1,0 +1,324 @@
+{% extends 'layout.html' %}
+
+{% block title %}Analytics Dashboard{% endblock %}
+
+{% block extra_styles %}
+<style>
+    .analytics-card {
+        transition: transform 0.3s ease;
+    }
+    .analytics-card:hover {
+        transform: translateY(-5px);
+    }
+    .growth-indicator {
+        font-size: 14px;
+        font-weight: bold;
+    }
+    .growth-positive {
+        color: #198754;
+    }
+    .growth-negative {
+        color: #dc3545;
+    }
+    .chart-container {
+        height: 300px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h2"><i class="fas fa-chart-bar me-2"></i>Analytics Dashboard</h1>
+    
+    <div class="btn-group">
+        <a href="{{ url_for('admin_analytics', period='week') }}" class="btn btn-outline-primary {{ 'active' if period == 'week' }}">Week</a>
+        <a href="{{ url_for('admin_analytics', period='month') }}" class="btn btn-outline-primary {{ 'active' if period == 'month' }}">Month</a>
+        <a href="{{ url_for('admin_analytics', period='year') }}" class="btn btn-outline-primary {{ 'active' if period == 'year' }}">Year</a>
+    </div>
+</div>
+
+<!-- Summary Cards -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-4">
+        <div class="card analytics-card shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h6 class="text-muted mb-1">Total Orders</h6>
+                        <h3 class="mb-0">{{ total_orders }}</h3>
+                        <span class="growth-indicator {{ 'growth-positive' if order_growth >= 0 else 'growth-negative' }}">
+                            <i class="fas fa-{{ 'arrow-up' if order_growth >= 0 else 'arrow-down' }}"></i>
+                            {{ "%.1f"|format(order_growth|abs) }}%
+                        </span>
+                    </div>
+                    <div class="p-2 rounded-circle bg-primary bg-opacity-10 text-primary">
+                        <i class="fas fa-shopping-cart fa-2x"></i>
+                    </div>
+                </div>
+                <p class="text-muted small mt-3 mb-0">
+                    Current period: {{ current_period_orders }} orders
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-4">
+        <div class="card analytics-card shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h6 class="text-muted mb-1">Total Revenue</h6>
+                        <h3 class="mb-0">${{ "%.2f"|format(total_revenue) }}</h3>
+                        <span class="growth-indicator {{ 'growth-positive' if revenue_growth >= 0 else 'growth-negative' }}">
+                            <i class="fas fa-{{ 'arrow-up' if revenue_growth >= 0 else 'arrow-down' }}"></i>
+                            {{ "%.1f"|format(revenue_growth|abs) }}%
+                        </span>
+                    </div>
+                    <div class="p-2 rounded-circle bg-success bg-opacity-10 text-success">
+                        <i class="fas fa-dollar-sign fa-2x"></i>
+                    </div>
+                </div>
+                <p class="text-muted small mt-3 mb-0">
+                    Current period: ${{ "%.2f"|format(current_period_revenue) }}
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-4">
+        <div class="card analytics-card shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h6 class="text-muted mb-1">Total Customers</h6>
+                        <h3 class="mb-0">{{ total_customers }}</h3>
+                    </div>
+                    <div class="p-2 rounded-circle bg-info bg-opacity-10 text-info">
+                        <i class="fas fa-users fa-2x"></i>
+                    </div>
+                </div>
+                <p class="text-muted small mt-3 mb-0">
+                    Lifetime total
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-4">
+        <div class="card analytics-card shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h6 class="text-muted mb-1">Average Order</h6>
+                        <h3 class="mb-0">
+                            ${{ "%.2f"|format(total_revenue / total_orders if total_orders > 0 else 0) }}
+                        </h3>
+                    </div>
+                    <div class="p-2 rounded-circle bg-warning bg-opacity-10 text-warning">
+                        <i class="fas fa-calculator fa-2x"></i>
+                    </div>
+                </div>
+                <p class="text-muted small mt-3 mb-0">
+                    Based on all orders
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <!-- Sales Over Time Chart -->
+    <div class="col-md-8 mb-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white">
+                <h5 class="card-title mb-0">
+                    Sales Trend
+                    {% if period == 'week' %}
+                        (Last 7 Days)
+                    {% elif period == 'month' %}
+                        (This Month)
+                    {% elif period == 'year' %}
+                        (This Year)
+                    {% endif %}
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="salesChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Order Status Chart -->
+    <div class="col-md-4 mb-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white">
+                <h5 class="card-title mb-0">Order Status</h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="statusChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Top Products Chart -->
+    <div class="col-md-12">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="card-title mb-0">Top Products</h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="productsChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Parse data from server
+    const salesData = {{ sales_data|safe }};
+    const productData = {{ product_data|safe }};
+    const statusData = {{ status_data|safe }};
+    
+    // Sales chart
+    const salesCtx = document.getElementById('salesChart').getContext('2d');
+    const salesChart = new Chart(salesCtx, {
+        type: 'bar',
+        data: {
+            labels: salesData.map(item => item.date),
+            datasets: [{
+                label: 'Orders',
+                data: salesData.map(item => item.count),
+                backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1,
+                yAxisID: 'y'
+            }, {
+                label: 'Revenue',
+                data: salesData.map(item => item.total),
+                backgroundColor: 'rgba(75, 192, 192, 0.5)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1,
+                type: 'line',
+                yAxisID: 'y1'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                mode: 'index',
+                intersect: false,
+            },
+            scales: {
+                y: {
+                    type: 'linear',
+                    display: true,
+                    position: 'left',
+                    title: {
+                        display: true,
+                        text: 'Orders'
+                    }
+                },
+                y1: {
+                    type: 'linear',
+                    display: true,
+                    position: 'right',
+                    grid: {
+                        drawOnChartArea: false,
+                    },
+                    title: {
+                        display: true,
+                        text: 'Revenue ($)'
+                    }
+                }
+            }
+        }
+    });
+    
+    // Status chart
+    const statusCtx = document.getElementById('statusChart').getContext('2d');
+    const statusColors = {
+        'new': '#0d6efd',
+        'processing': '#ffc107',
+        'shipped': '#0dcaf0',
+        'delivered': '#198754',
+        'cancelled': '#dc3545'
+    };
+    
+    const statusChart = new Chart(statusCtx, {
+        type: 'doughnut',
+        data: {
+            labels: statusData.map(item => item.status.charAt(0).toUpperCase() + item.status.slice(1)),
+            datasets: [{
+                data: statusData.map(item => item.count),
+                backgroundColor: statusData.map(item => statusColors[item.status] || '#6c757d'),
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'right',
+                }
+            }
+        }
+    });
+    
+    // Product chart
+    const productCtx = document.getElementById('productsChart').getContext('2d');
+    const productChart = new Chart(productCtx, {
+        type: 'bar',
+        data: {
+            labels: productData.map(item => item.name),
+            datasets: [{
+                label: 'Orders',
+                data: productData.map(item => item.quantity),
+                backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }, {
+                label: 'Revenue',
+                data: productData.map(item => item.revenue),
+                backgroundColor: 'rgba(255, 99, 132, 0.7)',
+                borderColor: 'rgba(255, 99, 132, 1)',
+                borderWidth: 1,
+                hidden: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top',
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Orders'
+                    }
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

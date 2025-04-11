@@ -1,0 +1,214 @@
+{% extends 'layout.html' %}
+
+{% block title %}Orders Management{% endblock %}
+
+{% block extra_styles %}
+<style>
+    .order-table th, .order-table td {
+        vertical-align: middle;
+    }
+    .order-badge {
+        min-width: 90px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h2"><i class="fas fa-shopping-cart me-2"></i>Orders Management</h1>
+    <div class="btn-group">
+        <a href="{{ url_for('admin_export_orders', status=current_status, search=search_query) }}" class="btn btn-success">
+            <i class="fas fa-file-excel me-1"></i> Export to Excel
+        </a>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-md-6">
+                <form action="{{ url_for('admin_orders') }}" method="GET" class="d-flex">
+                    <input type="hidden" name="status" value="{{ current_status }}">
+                    <input type="text" name="search" class="form-control me-2" placeholder="Search orders..." value="{{ search_query }}">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </form>
+            </div>
+            <div class="col-md-6">
+                <div class="d-flex justify-content-md-end">
+                    <div class="btn-group">
+                        <a href="{{ url_for('admin_orders') }}" class="btn btn-outline-secondary {{ 'active' if not current_status }}">All</a>
+                        {% for status in statuses %}
+                        <a href="{{ url_for('admin_orders', status=status.value, search=search_query) }}" 
+                           class="btn btn-outline-secondary {{ 'active' if current_status == status.value }}">
+                            {{ status.label }}
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Orders Table -->
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        {% if orders.items %}
+        <div class="table-responsive">
+            <table class="table table-hover order-table mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>Customer</th>
+                        <th>Phone</th>
+                        <th>Date</th>
+                        <th>Products</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders.items %}
+                    <tr>
+                        <td>#{{ order.id }}</td>
+                        <td>
+                            {% set customer = order.customer %}
+                            {% if customer %}
+                                {{ customer.full_name if customer.full_name else customer.messenger_name }}
+                            {% else %}
+                                Unknown
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if customer and customer.phone %}
+                                {{ customer.phone }}
+                            {% else %}
+                                <span class="text-muted">N/A</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ order.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td>
+                            {% set products = [] %}
+                            {% for item in order.items %}
+                                {% if item.product %}
+                                    {% set product_info = item.product.name + " (x" + item.quantity|string + ")" %}
+                                    {% set _ = products.append(product_info) %}
+                                {% endif %}
+                            {% endfor %}
+                            {{ products|join(', ') if products else 'No products' }}
+                        </td>
+                        <td>${{ "%.2f"|format(order.total_amount) }}</td>
+                        <td>
+                            {% if order.status == 'new' %}
+                                <span class="badge bg-primary order-badge">New</span>
+                            {% elif order.status == 'processing' %}
+                                <span class="badge bg-warning text-dark order-badge">Processing</span>
+                            {% elif order.status == 'shipped' %}
+                                <span class="badge bg-info text-dark order-badge">Shipped</span>
+                            {% elif order.status == 'delivered' %}
+                                <span class="badge bg-success order-badge">Delivered</span>
+                            {% elif order.status == 'cancelled' %}
+                                <span class="badge bg-danger order-badge">Cancelled</span>
+                            {% else %}
+                                <span class="badge bg-secondary order-badge">{{ order.status }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a href="{{ url_for('admin_order_detail', order_id=order.id) }}" class="btn btn-outline-primary">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{{ url_for('admin_generate_invoice', order_id=order.id) }}" class="btn btn-outline-success">
+                                    <i class="fas fa-file-invoice"></i>
+                                </a>
+                                <a href="{{ url_for('admin_generate_qrcode', order_id=order.id) }}" class="btn btn-outline-info">
+                                    <i class="fas fa-qrcode"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center p-5">
+            <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+            <h5>No orders found</h5>
+            <p class="text-muted">
+                {% if search_query %}
+                    No orders match your search criteria.
+                {% elif current_status %}
+                    No orders with status "{{ current_status }}" found.
+                {% else %}
+                    No orders have been placed yet.
+                {% endif %}
+            </p>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Pagination -->
+    {% if orders.pages > 1 %}
+    <div class="card-footer">
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center mb-0">
+                {% if orders.has_prev %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('admin_orders', page=orders.prev_num, status=current_status, search=search_query) }}" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <a class="page-link" href="#" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+                {% endif %}
+                
+                {% for page_num in orders.iter_pages(left_edge=2, left_current=2, right_current=3, right_edge=2) %}
+                    {% if page_num %}
+                        {% if orders.page == page_num %}
+                        <li class="page-item active">
+                            <a class="page-link" href="{{ url_for('admin_orders', page=page_num, status=current_status, search=search_query) }}">{{ page_num }}</a>
+                        </li>
+                        {% else %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('admin_orders', page=page_num, status=current_status, search=search_query) }}">{{ page_num }}</a>
+                        </li>
+                        {% endif %}
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">...</span>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if orders.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('admin_orders', page=orders.next_num, status=current_status, search=search_query) }}" aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <a class="page-link" href="#" aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/orders.js') }}"></script>
+{% endblock %}

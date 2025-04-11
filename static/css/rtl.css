@@ -1,0 +1,157 @@
+/* RTL Layout Support */
+.rtl {
+    direction: rtl;
+    text-align: right;
+}
+
+/* Navbar RTL */
+.rtl .navbar-nav {
+    padding-right: 0;
+}
+
+.rtl .navbar-nav .nav-link {
+    padding-right: 0;
+    padding-left: 0.5rem;
+}
+
+.rtl .navbar-nav .dropdown-menu {
+    right: 0;
+    left: auto;
+    text-align: right;
+}
+
+/* Form Controls RTL */
+.rtl .form-check {
+    padding-right: 1.5em;
+    padding-left: 0;
+}
+
+.rtl .form-check .form-check-input {
+    float: right;
+    margin-left: 0;
+    margin-right: -1.5em;
+}
+
+/* Tables RTL */
+.rtl .table th,
+.rtl .table td {
+    text-align: right;
+}
+
+/* Input Groups RTL */
+.rtl .input-group > .form-control {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    border-top-right-radius: 0.375rem;
+    border-bottom-right-radius: 0.375rem;
+}
+
+.rtl .input-group > .input-group-text {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    border-top-left-radius: 0.375rem;
+    border-bottom-left-radius: 0.375rem;
+}
+
+.rtl .input-group > .btn {
+    border-top-left-radius: 0.375rem;
+    border-bottom-left-radius: 0.375rem;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+/* List Groups RTL */
+.rtl .list-group {
+    padding-right: 0;
+}
+
+/* Modal RTL */
+.rtl .modal-header .btn-close {
+    margin: -0.5rem auto -0.5rem -0.5rem;
+}
+
+/* Button Groups RTL */
+.rtl .btn-group > .btn:first-child {
+    border-top-right-radius: 0.375rem;
+    border-bottom-right-radius: 0.375rem;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
+.rtl .btn-group > .btn:last-child {
+    border-top-left-radius: 0.375rem;
+    border-bottom-left-radius: 0.375rem;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+/* Padding and Margin RTL */
+.rtl .me-1 {
+    margin-right: 0 !important;
+    margin-left: 0.25rem !important;
+}
+
+.rtl .me-2 {
+    margin-right: 0 !important;
+    margin-left: 0.5rem !important;
+}
+
+.rtl .me-3 {
+    margin-right: 0 !important;
+    margin-left: 1rem !important;
+}
+
+.rtl .ms-1 {
+    margin-left: 0 !important;
+    margin-right: 0.25rem !important;
+}
+
+.rtl .ms-2 {
+    margin-left: 0 !important;
+    margin-right: 0.5rem !important;
+}
+
+.rtl .ms-3 {
+    margin-left: 0 !important;
+    margin-right: 1rem !important;
+}
+
+.rtl .ps-3 {
+    padding-left: 0 !important;
+    padding-right: 1rem !important;
+}
+
+/* Offcanvas RTL */
+.rtl .offcanvas-start {
+    left: auto;
+    right: 0;
+    transform: translateX(100%);
+}
+
+.rtl .offcanvas-end {
+    right: auto;
+    left: 0;
+    transform: translateX(-100%);
+}
+
+/* Dropdown RTL */
+.rtl .dropdown-menu-end {
+    right: auto;
+    left: 0;
+}
+
+/* Alerts RTL */
+.rtl .alert-dismissible {
+    padding-right: 1rem;
+    padding-left: 3rem;
+}
+
+.rtl .alert-dismissible .btn-close {
+    right: auto;
+    left: 0;
+}
+
+/* Arabic Font Support */
+.rtl {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji", "Noto Sans Arabic";
+}

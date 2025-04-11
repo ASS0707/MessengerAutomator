@@ -1,0 +1,112 @@
+{% extends 'layout.html' %}
+
+{% block title %}
+    {% if product %}Edit Product{% else %}New Product{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h2">
+        <i class="fas fa-box me-2"></i>
+        {% if product %}Edit Product{% else %}New Product{% endif %}
+    </h1>
+    <a href="{{ url_for('admin_products') }}" class="btn btn-outline-primary">
+        <i class="fas fa-arrow-left me-1"></i> Back to Products
+    </a>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <form method="POST" action="{% if product %}{{ url_for('admin_edit_product', product_id=product.id) }}{% else %}{{ url_for('admin_new_product') }}{% endif %}">
+            <div class="row mb-4">
+                <!-- English Product Info -->
+                <div class="col-md-6">
+                    <h5 class="mb-3">English Information</h5>
+                    
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Product Name*</label>
+                        <input type="text" class="form-control" id="name" name="name" value="{{ product.name if product else '' }}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" name="description" rows="4">{{ product.description if product else '' }}</textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="category" class="form-label">Category*</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="category" name="category" value="{{ product.category if product else '' }}" list="category-list" required>
+                            <datalist id="category-list">
+                                {% for category, _ in categories %}
+                                    <option value="{{ category }}">
+                                {% endfor %}
+                            </datalist>
+                        </div>
+                        <small class="text-muted">You can select an existing category or create a new one</small>
+                    </div>
+                </div>
+                
+                <!-- Arabic Product Info -->
+                <div class="col-md-6">
+                    <h5 class="mb-3">Arabic Information</h5>
+                    
+                    <div class="mb-3">
+                        <label for="name_ar" class="form-label">Product Name (Arabic)*</label>
+                        <input type="text" class="form-control" id="name_ar" name="name_ar" value="{{ product.name_ar if product else '' }}" required dir="rtl">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="description_ar" class="form-label">Description (Arabic)</label>
+                        <textarea class="form-control" id="description_ar" name="description_ar" rows="4" dir="rtl">{{ product.description_ar if product else '' }}</textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="category_ar" class="form-label">Category (Arabic)*</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="category_ar" name="category_ar" value="{{ product.category_ar if product else '' }}" list="category-list-ar" required dir="rtl">
+                            <datalist id="category-list-ar">
+                                {% for _, category_ar in categories %}
+                                    <option value="{{ category_ar }}">
+                                {% endfor %}
+                            </datalist>
+                        </div>
+                        <small class="text-muted">You can select an existing category or create a new one</small>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="price" class="form-label">Price*</label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input type="number" class="form-control" id="price" name="price" value="{{ product.price if product else '' }}" step="0.01" min="0" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <div class="form-check form-switch mt-4">
+                            <input class="form-check-input" type="checkbox" id="active" name="active" {% if product is not defined or product.active %}checked{% endif %}>
+                            <label class="form-check-label" for="active">Active</label>
+                        </div>
+                        <small class="text-muted">Inactive products won't be shown to customers</small>
+                    </div>
+                </div>
+            </div>
+            
+            <hr class="my-4">
+            
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                <a href="{{ url_for('admin_products') }}" class="btn btn-outline-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save me-1"></i>
+                    {% if product %}Save Changes{% else %}Create Product{% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,201 @@
+{% extends 'layout.html' %}
+
+{% block title %}Admin Profile{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h2"><i class="fas fa-user-circle me-2"></i>Admin Profile</h1>
+</div>
+
+<div class="row">
+    <!-- Profile Information -->
+    <div class="col-md-6 mb-4">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0"><i class="fas fa-id-card me-2"></i>Profile Information</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('admin_profile') }}">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Full Name</label>
+                        <input type="text" class="form-control" id="name" name="name" value="{{ current_user.name }}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email Address</label>
+                        <input type="email" class="form-control" id="email" name="email" value="{{ current_user.email }}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Username</label>
+                        <input type="text" class="form-control" id="username" value="{{ current_user.username }}" disabled>
+                        <div class="form-text">Username cannot be changed</div>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-1"></i> Update Profile
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Change Password -->
+    <div class="col-md-6 mb-4">
+        <div class="card shadow-sm">
+            <div class="card-header bg-danger text-white">
+                <h5 class="card-title mb-0"><i class="fas fa-key me-2"></i>Change Password</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('admin_profile') }}" id="passwordForm">
+                    <div class="mb-3">
+                        <label for="current_password" class="form-label">Current Password</label>
+                        <input type="password" class="form-control" id="current_password" name="current_password">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="new_password" class="form-label">New Password</label>
+                        <input type="password" class="form-control" id="new_password" name="new_password">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="confirm_password" class="form-label">Confirm New Password</label>
+                        <input type="password" class="form-control" id="confirm_password" name="confirm_password">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="progress" style="height: 5px;">
+                            <div class="progress-bar bg-danger" id="passwordStrength" role="progressbar" style="width: 0%"></div>
+                        </div>
+                        <small id="passwordFeedback" class="form-text text-muted">Password strength indicator</small>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-save me-1"></i> Change Password
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Login History -->
+<div class="card shadow-sm">
+    <div class="card-header bg-secondary text-white">
+        <h5 class="card-title mb-0"><i class="fas fa-history me-2"></i>Account Information</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <p><strong>Account Created:</strong> {{ current_user.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                <p><strong>Last Login:</strong> Now</p>
+            </div>
+            <div class="col-md-6">
+                <p><strong>User ID:</strong> {{ current_user.id }}</p>
+                <p><strong>Role:</strong> Administrator</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const passwordInput = document.getElementById('new_password');
+    const confirmInput = document.getElementById('confirm_password');
+    const strengthBar = document.getElementById('passwordStrength');
+    const feedback = document.getElementById('passwordFeedback');
+    const passwordForm = document.getElementById('passwordForm');
+    
+    // Check password strength
+    passwordInput.addEventListener('input', function() {
+        const password = this.value;
+        let strength = 0;
+        let feedbackText = '';
+        
+        if (password.length >= 8) {
+            strength += 25;
+        }
+        
+        if (password.match(/[a-z]/) && password.match(/[A-Z]/)) {
+            strength += 25;
+        }
+        
+        if (password.match(/\d/)) {
+            strength += 25;
+        }
+        
+        if (password.match(/[^a-zA-Z\d]/)) {
+            strength += 25;
+        }
+        
+        // Update strength bar
+        strengthBar.style.width = strength + '%';
+        
+        // Update color
+        if (strength <= 25) {
+            strengthBar.className = 'progress-bar bg-danger';
+            feedbackText = 'Weak password';
+        } else if (strength <= 50) {
+            strengthBar.className = 'progress-bar bg-warning';
+            feedbackText = 'Fair password';
+        } else if (strength <= 75) {
+            strengthBar.className = 'progress-bar bg-info';
+            feedbackText = 'Good password';
+        } else {
+            strengthBar.className = 'progress-bar bg-success';
+            feedbackText = 'Strong password';
+        }
+        
+        feedback.textContent = feedbackText;
+    });
+    
+    // Check if passwords match
+    confirmInput.addEventListener('input', function() {
+        if (this.value !== passwordInput.value) {
+            this.setCustomValidity('Passwords do not match');
+        } else {
+            this.setCustomValidity('');
+        }
+    });
+    
+    // Form validation
+    passwordForm.addEventListener('submit', function(e) {
+        const currentPassword = document.getElementById('current_password').value;
+        const newPassword = passwordInput.value;
+        const confirmPassword = confirmInput.value;
+        
+        if (newPassword || confirmPassword || currentPassword) {
+            if (!currentPassword) {
+                e.preventDefault();
+                alert('Please enter your current password');
+                return;
+            }
+            
+            if (!newPassword) {
+                e.preventDefault();
+                alert('Please enter a new password');
+                return;
+            }
+            
+            if (newPassword.length < 6) {
+                e.preventDefault();
+                alert('Password must be at least 6 characters long');
+                return;
+            }
+            
+            if (newPassword !== confirmPassword) {
+                e.preventDefault();
+                alert('Passwords do not match');
+                return;
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

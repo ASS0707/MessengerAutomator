@@ -1,0 +1,296 @@
+{% extends 'layout.html' %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block extra_styles %}
+<style>
+    .stats-card {
+        transition: transform 0.3s;
+    }
+    .stats-card:hover {
+        transform: translateY(-5px);
+    }
+    .recent-orders-table th, .recent-orders-table td {
+        vertical-align: middle;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h2"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</h1>
+    <div class="btn-group">
+        <a href="{{ url_for('admin_products') }}" class="btn btn-outline-primary">
+            <i class="fas fa-box me-1"></i> Manage Products
+        </a>
+        <a href="{{ url_for('admin_orders') }}" class="btn btn-outline-primary">
+            <i class="fas fa-shopping-cart me-1"></i> Manage Orders
+        </a>
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card stats-card bg-primary text-white h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title">New Orders</h6>
+                        <h2 class="mb-0">{{ new_orders_count }}</h2>
+                    </div>
+                    <div class="fs-1">
+                        <i class="fas fa-shopping-cart"></i>
+                    </div>
+                </div>
+                <small>Waiting for processing</small>
+            </div>
+            <div class="card-footer bg-transparent border-0">
+                <a href="{{ url_for('admin_orders', status='new') }}" class="text-white">View Details <i class="fas fa-arrow-right ms-1"></i></a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card stats-card bg-success text-white h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title">Total Orders</h6>
+                        <h2 class="mb-0">{{ total_orders_count }}</h2>
+                    </div>
+                    <div class="fs-1">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                </div>
+                <small>All time</small>
+            </div>
+            <div class="card-footer bg-transparent border-0">
+                <a href="{{ url_for('admin_orders') }}" class="text-white">View Details <i class="fas fa-arrow-right ms-1"></i></a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card stats-card bg-warning text-dark h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title">Products</h6>
+                        <h2 class="mb-0">{{ total_products }}</h2>
+                    </div>
+                    <div class="fs-1">
+                        <i class="fas fa-box"></i>
+                    </div>
+                </div>
+                <small>Active products</small>
+            </div>
+            <div class="card-footer bg-transparent border-0">
+                <a href="{{ url_for('admin_products') }}" class="text-dark">Manage Products <i class="fas fa-arrow-right ms-1"></i></a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card stats-card bg-info text-white h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title">Customers</h6>
+                        <h2 class="mb-0">{{ total_customers }}</h2>
+                    </div>
+                    <div class="fs-1">
+                        <i class="fas fa-users"></i>
+                    </div>
+                </div>
+                <small>Total customers</small>
+            </div>
+            <div class="card-footer bg-transparent border-0">
+                <a href="{{ url_for('admin_analytics') }}" class="text-white">View Analytics <i class="fas fa-arrow-right ms-1"></i></a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <!-- Sales Chart -->
+    <div class="col-md-8">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white">
+                <h5 class="card-title mb-0">Sales Overview - Last 7 Days</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="salesChart" height="250"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Top Products -->
+    <div class="col-md-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white">
+                <h5 class="card-title mb-0">Top Products</h5>
+            </div>
+            <div class="card-body">
+                {% if top_products %}
+                <div class="list-group list-group-flush">
+                    {% for product in top_products %}
+                    <div class="list-group-item px-0">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-0">{{ product.name }}</h6>
+                                <small class="text-muted">{{ product.name_ar }}</small>
+                            </div>
+                            <span class="badge bg-primary rounded-pill">{{ product.total_quantity }} orders</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center p-4">
+                    <p class="text-muted">No products ordered yet</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Orders -->
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">Recent Orders</h5>
+        <a href="{{ url_for('admin_orders') }}" class="btn btn-sm btn-primary">View All</a>
+    </div>
+    <div class="card-body p-0">
+        {% if recent_orders %}
+        <div class="table-responsive">
+            <table class="table table-hover recent-orders-table mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>Customer</th>
+                        <th>Date</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in recent_orders %}
+                    <tr>
+                        <td>#{{ order.id }}</td>
+                        <td>
+                            {% set customer = order.customer %}
+                            {% if customer %}
+                                {{ customer.full_name if customer.full_name else customer.messenger_name }}
+                            {% else %}
+                                Unknown
+                            {% endif %}
+                        </td>
+                        <td>{{ order.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td>${{ "%.2f"|format(order.total_amount) }}</td>
+                        <td>
+                            {% if order.status == 'new' %}
+                                <span class="badge bg-primary">New</span>
+                            {% elif order.status == 'processing' %}
+                                <span class="badge bg-warning text-dark">Processing</span>
+                            {% elif order.status == 'shipped' %}
+                                <span class="badge bg-info text-dark">Shipped</span>
+                            {% elif order.status == 'delivered' %}
+                                <span class="badge bg-success">Delivered</span>
+                            {% elif order.status == 'cancelled' %}
+                                <span class="badge bg-danger">Cancelled</span>
+                            {% else %}
+                                <span class="badge bg-secondary">{{ order.status }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{{ url_for('admin_order_detail', order_id=order.id) }}" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-eye"></i> View
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center p-4">
+            <p class="text-muted">No orders yet</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const chartData = {{ chart_data|safe }};
+    
+    // Parse data for the chart
+    const dates = chartData.map(item => item.date);
+    const orderCounts = chartData.map(item => item.count);
+    const orderTotals = chartData.map(item => item.total);
+    
+    // Create the chart
+    const ctx = document.getElementById('salesChart').getContext('2d');
+    const salesChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: dates,
+            datasets: [{
+                label: 'Order Count',
+                data: orderCounts,
+                backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1,
+                yAxisID: 'y'
+            }, {
+                label: 'Revenue',
+                data: orderTotals,
+                backgroundColor: 'rgba(75, 192, 192, 0.5)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1,
+                type: 'line',
+                yAxisID: 'y1'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                mode: 'index',
+                intersect: false,
+            },
+            scales: {
+                y: {
+                    type: 'linear',
+                    display: true,
+                    position: 'left',
+                    title: {
+                        display: true,
+                        text: 'Orders'
+                    }
+                },
+                y1: {
+                    type: 'linear',
+                    display: true,
+                    position: 'right',
+                    grid: {
+                        drawOnChartArea: false,
+                    },
+                    title: {
+                        display: true,
+                        text: 'Revenue'
+                    }
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}
